@@ -2,6 +2,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import cache from 'express-aggressive-cache';
+import { getCardsPrices } from './parsers';
 
 const app = express();
 
@@ -14,8 +15,8 @@ app.use(
     }).middleware
 );
 
-app.get('/dogs/number', async (_req: Request, res: Response) => {
-    const data = {};
+app.get('/prices', async (_req: Request, res: Response) => {
+    const data = await getCardsPrices();
     res.json(data);
 });
 

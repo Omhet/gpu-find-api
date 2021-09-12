@@ -1,11 +1,15 @@
-export const getText = (element: Element, selector: string) => {
-    return element.querySelector(selector)?.textContent?.trim();
+import { Page } from 'playwright-chromium';
+import { CardsPaths, shopUrl } from './constants';
+
+export const getText = (page: Page, selector: string) => {
+    return page.$eval(selector, (el) => el.textContent?.trim());
 };
 
-export const getImage = (element: Element, selector: string) => {
-    return element.querySelector(selector)?.getAttribute('src');
+export const getTextArray = (page: Page, selector: string) => {
+    return page.$$eval(selector, (els) =>
+        els.map((el) => el.textContent?.trim())
+    );
 };
 
-export const getLink = (element: Element, selector: string) => {
-    return element.querySelector(selector)?.getAttribute('href');
-};
+export const getCardsUrls = () =>
+    CardsPaths.map((path) => `${shopUrl}/${path}`);
