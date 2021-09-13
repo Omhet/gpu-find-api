@@ -1,7 +1,7 @@
 {
     "scripts": {
-        "watch": "tsc -w",
-        "start": "nodemon --watch './**/*.ts' --exec ts-node ./src/index.ts"
+        "start:dev": "nodemon --watch './**/*.ts' --exec ts-node ./src/index.ts",
+        "start": "tsc && node ./dist/index.js"
     },
     "engines": {
         "node": ">=14.0"
