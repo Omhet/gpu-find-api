@@ -1,8 +1,10 @@
 import { chromium } from 'playwright-chromium';
 import { CardsPaths } from './constants';
+import { Card, ShopPriceTuple } from './types';
 import {
     getCardsUrls,
     getPricesStatsFromShopPrices,
+    getShopArray,
     getText,
     getTextArray,
 } from './utils';
@@ -10,26 +12,24 @@ import {
 export const getCardsPrices = async () => {
     const data: Record<string, any> = {};
     for (const [model, paths] of Object.entries(CardsPaths)) {
-        const cardPrices = await getCardPrices(paths);
-        const stats = getPricesStatsFromShopPrices(
-            cardPrices.map(({ shopPrices }) => shopPrices)
-        );
+        const cards = await getCards(paths);
+        const stats = getPricesStatsFromShopPrices(cards);
 
         data[model] = {
-            cardPrices,
+            cards,
             stats,
         };
     }
     return data;
 };
 
-export const getCardPrices = async (cardPaths: string[]) => {
+export const getCards = async (cardPaths: string[]) => {
     const urls = getCardsUrls(cardPaths);
-    const requests = urls.map(fetchCardPrices);
+    const requests = urls.map(fetchCards);
     return await Promise.all(requests);
 };
 
-export const fetchCardPrices = async (url: string) => {
+export const fetchCards = async (url: string) => {
     const browser = await chromium.launch({ chromiumSandbox: false });
     const page = await browser.newPage();
     await page.goto(url);
@@ -47,27 +47,25 @@ export const fetchCardPrices = async (url: string) => {
         price ? Number(price.replace(/\D/g, '')) : -1
     );
 
-    const shops = await getTextArray(
+    const shops = await getShopArray(
         page,
         '#item-wherebuy-table td.where-buy-description > div > a'
     );
 
-    const shopPricesArray: Array<[string, number]> = prices.map(
-        (price, index) => [shops[index] ?? '', price]
+    const shopPricesArray: Array<ShopPriceTuple> = prices.map(
+        (price, index) => [shops[index], price]
     );
     const shopPricesArraySorted = shopPricesArray.sort(
         ([_aShop, aPrice], [_bShop, bPrice]) => aPrice - bPrice
     );
 
-    const shopPrices = shopPricesArraySorted.reduce(
-        (rest, [shop, price]) => ({ ...rest, [shop]: price }),
-        {}
-    );
+    const cards: Card[] = shopPricesArraySorted.map(([shop, price]) => ({
+        name: cardName ?? '',
+        shop,
+        price,
+    }));
 
     await browser.close();
 
-    return {
-        cardName,
-        shopPrices,
-    };
+    return cards;
 };

@@ -1,6 +1,6 @@
 import { Page } from 'playwright-chromium';
 import { shopUrl } from './constants';
-import { ShopPrices, ShopPriceTuple } from './types';
+import { Card, ShopPriceTuple } from './types';
 
 export const getText = (page: Page, selector: string) => {
     return page.$eval(selector, (el) => el.textContent?.trim());
@@ -12,22 +12,28 @@ export const getTextArray = (page: Page, selector: string) => {
     );
 };
 
+export const getShopArray = (page: Page, selector: string) => {
+    return page.$$eval(selector, (els) =>
+        els.map((el) => ({
+            name: el.textContent?.trim() ?? '',
+            link:
+                (String(el.onmouseover).match(/this\.href="([^"]+)/) ??
+                    [])[1] ?? '',
+        }))
+    );
+};
+
 export const getCardsUrls = (cardsPath: string[]) =>
     cardsPath.map((path) => `${shopUrl}/${path}`);
 
-export const getPricesStatsFromShopPrices = (allShopPrices: ShopPrices[]) => {
-    const shopPricesArray = allShopPrices.flatMap((shopPrices) =>
-        Object.entries(shopPrices)
-    );
-    const sortedShopPricesArray = getSortedShopPricesArray(shopPricesArray);
+export const getPricesStatsFromShopPrices = (cards: Card[][]) => {
+    const sortedCards = cards
+        .flatMap((card) => card)
+        .sort((a, b) => a.price - b.price);
 
-    const min = getShopPriceFromTuple(sortedShopPricesArray[0]);
-    const max = getShopPriceFromTuple(
-        sortedShopPricesArray[sortedShopPricesArray.length - 1]
-    );
-    const med = getShopPriceFromTuple(
-        sortedShopPricesArray[Math.floor(sortedShopPricesArray.length / 2)]
-    );
+    const min = sortedCards[0];
+    const max = sortedCards[sortedCards.length - 1];
+    const med = sortedCards[Math.floor(sortedCards.length / 2)];
 
     return {
         min,
@@ -35,10 +41,6 @@ export const getPricesStatsFromShopPrices = (allShopPrices: ShopPrices[]) => {
         max,
     };
 };
-
-const getShopPriceFromTuple = ([shop, price]: [string, number]) => ({
-    [shop]: price,
-});
 
 export const getSortedShopPricesArray = (shopPricesArray: ShopPriceTuple[]) =>
     shopPricesArray.sort(
