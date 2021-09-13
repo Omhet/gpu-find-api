@@ -9,4 +9,6 @@ export const CardsPaths3070 = [
     'PALIT-GEFORCE-RTX-3070-JETSTREAM-OC.htm',
 ];
 
-export const CardsPaths = [...CardsPaths3070];
+export const CardsPaths = {
+    '3070': CardsPaths3070,
+};

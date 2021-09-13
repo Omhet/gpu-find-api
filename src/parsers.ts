@@ -1,13 +1,23 @@
 import { chromium } from 'playwright-chromium';
+import { CardsPaths } from './constants';
 import { getCardsUrls, getText, getTextArray } from './utils';
 
 export const getCardsPrices = async () => {
-    const urls = getCardsUrls();
-    const requests = urls.map(getCardPrices);
+    const data: Record<string, any> = {};
+    for (const [model, paths] of Object.entries(CardsPaths)) {
+        const prices = await getCardPrices(paths);
+        data[model] = prices;
+    }
+    return data;
+};
+
+export const getCardPrices = async (cardPaths: string[]) => {
+    const urls = getCardsUrls(cardPaths);
+    const requests = urls.map(fetchCardPrices);
     return await Promise.all(requests);
 };
 
-export const getCardPrices = async (url: string) => {
+export const fetchCardPrices = async (url: string) => {
     const browser = await chromium.launch({ chromiumSandbox: false });
     const page = await browser.newPage();
     await page.goto(url);
