@@ -12,7 +12,7 @@ import {
 export const getCardsPrices = async () => {
     const browser = await chromium.launch({
         chromiumSandbox: false,
-        timeout: 100000,
+        timeout: 300000,
     });
 
     const data: Record<string, any> = {};
@@ -33,8 +33,11 @@ export const getCardsPrices = async () => {
 
 export const getCards = async (cardPaths: string[], browser: Browser) => {
     const urls = getCardsUrls(cardPaths);
-    const requests = urls.map((url) => fetchCards(url, browser));
-    const data = await Promise.all(requests);
+    const data = [];
+    for (const url of urls) {
+        const cards = await fetchCards(url, browser);
+        data.push(cards);
+    }
 
     return data;
 };
