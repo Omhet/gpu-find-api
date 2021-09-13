@@ -20,7 +20,7 @@
         "express-aggressive-cache": "^2.1.4",
         "jsdom": "^16.6.0",
         "nodemon": "^2.0.12",
-        "playwright-chromium": "^1.14.1",
+        "playwright-chromium": "1.12.3",
         "telegraf": "^3.38.0",
         "telegram-keyboard": "^2.1.7",
         "ts-node": "^10.2.1",
