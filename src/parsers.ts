@@ -10,9 +10,14 @@ import {
 } from './utils';
 
 export const getCardsPrices = async () => {
+    const browser = await chromium.launch({
+        chromiumSandbox: false,
+        timeout: 100000,
+    });
+
     const data: Record<string, any> = {};
     for (const [model, paths] of Object.entries(CardsPaths)) {
-        const cards = await getCards(paths);
+        const cards = await getCards(paths, browser);
         const stats = getPricesStatsFromShopPrices(cards);
 
         data[model] = {
@@ -20,20 +25,16 @@ export const getCardsPrices = async () => {
             stats,
         };
     }
+
+    await browser.close();
+
     return data;
 };
 
-export const getCards = async (cardPaths: string[]) => {
-    const browser = await chromium.launch({
-        chromiumSandbox: false,
-        timeout: 100000,
-    });
-
+export const getCards = async (cardPaths: string[], browser: Browser) => {
     const urls = getCardsUrls(cardPaths);
     const requests = urls.map((url) => fetchCards(url, browser));
     const data = await Promise.all(requests);
-
-    await browser.close();
 
     return data;
 };
