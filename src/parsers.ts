@@ -27,17 +27,28 @@ export const fetchCardPrices = async (url: string) => {
         '#help_table > tbody > tr:nth-child(1) > td > div.op1-tt'
     );
 
-    const prices = await getTextArray(
+    const textPrices = await getTextArray(
         page,
         '#item-wherebuy-table td.where-buy-price > a'
     );
+    const prices = textPrices.map((price) =>
+        price ? Number(price.replace(/\D/g, '')) : -1
+    );
+
     const shops = await getTextArray(
         page,
         '#item-wherebuy-table td.where-buy-description > div > a'
     );
 
-    const shopPrices = shops.reduce(
-        (rest, shop, index) => ({ ...rest, [shop ?? '']: prices[index] }),
+    const shopPricesArray: Array<[string, number]> = prices.map(
+        (price, index) => [shops[index] ?? '', price]
+    );
+    const shopPricesArraySorted = shopPricesArray.sort(
+        ([_aShop, aPrice], [_bShop, bPrice]) => aPrice - bPrice
+    );
+
+    const shopPrices = shopPricesArraySorted.reduce(
+        (rest, [shop, price]) => ({ ...rest, [shop]: price }),
         {}
     );
 
