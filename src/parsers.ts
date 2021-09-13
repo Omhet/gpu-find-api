@@ -30,7 +30,10 @@ export const getCards = async (cardPaths: string[]) => {
 };
 
 export const fetchCards = async (url: string) => {
-    const browser = await chromium.launch({ chromiumSandbox: false });
+    const browser = await chromium.launch({
+        chromiumSandbox: false,
+        timeout: 100000,
+    });
     const page = await browser.newPage();
     await page.goto(url);
 
