@@ -1,23 +1,13 @@
-import { Browser, chromium } from 'playwright-chromium';
+import { JSDOM } from 'jsdom';
 import { CardsPaths } from './constants';
-import { Card, ShopPriceTuple } from './types';
-import {
-    getCardsUrls,
-    getPricesStatsFromShopPrices,
-    getShopArray,
-    getText,
-    getTextArray,
-} from './utils';
+import { getElementsArray, getElementText, getShopLink } from './parseUtils';
+import { Card } from './types';
+import { getCardUrl, getPricesStatsFromShopPrices } from './utils';
 
 export const getCardsPrices = async () => {
-    const browser = await chromium.launch({
-        chromiumSandbox: false,
-        timeout: 300000,
-    });
-
     const data: Record<string, any> = {};
-    for (const [model, paths] of Object.entries(CardsPaths)) {
-        const cards = await getCards(paths, browser);
+    for (const [model, path] of Object.entries(CardsPaths)) {
+        const cards = await getCards(path);
         const stats = getPricesStatsFromShopPrices(cards);
 
         data[model] = {
@@ -26,56 +16,42 @@ export const getCardsPrices = async () => {
         };
     }
 
-    await browser.close();
-
     return data;
 };
 
-export const getCards = async (cardPaths: string[], browser: Browser) => {
-    const urls = getCardsUrls(cardPaths);
-    const data = [];
-    for (const url of urls) {
-        const cards = await fetchCards(url, browser);
-        data.push(cards);
-    }
-
-    return data;
+export const getCards = async (path: string) => {
+    const url = getCardUrl(path);
+    return await fetchCards(url);
 };
 
-export const fetchCards = async (url: string, browser: Browser) => {
-    const page = await browser.newPage();
-    await page.goto(url);
+export const fetchCards = async (url: string) => {
+    const {
+        window: { document },
+    } = await JSDOM.fromURL(url);
+    const modelElements = getElementsArray(document, '.model-short-block');
+    const cards: Card[][] = modelElements.map((modelElement) => {
+        const cardName = getElementText(modelElement, '.model-short-title');
 
-    const cardName = await getText(
-        page,
-        '#help_table > tbody > tr:nth-child(1) > td > div.op1-tt'
-    );
-
-    const textPrices = await getTextArray(
-        page,
-        '#item-wherebuy-table td.where-buy-price > a'
-    );
-    const prices = textPrices.map((price) =>
-        price ? Number(price.replace(/\D/g, '')) : -1
-    );
-
-    const shops = await getShopArray(
-        page,
-        '#item-wherebuy-table td.where-buy-description > div > a'
-    );
-
-    const shopPricesArray: Array<ShopPriceTuple> = prices.map(
-        (price, index) => [shops[index], price]
-    );
-    const shopPricesArraySorted = shopPricesArray.sort(
-        ([_aShop, aPrice], [_bShop, bPrice]) => aPrice - bPrice
-    );
-
-    const cards: Card[] = shopPricesArraySorted.map(([shop, price]) => ({
-        name: cardName ?? '',
-        shop,
-        price,
-    }));
+        const shopElements = getElementsArray(
+            modelElement,
+            '.model-hot-prices tr'
+        );
+        return shopElements.map((shopElement) => {
+            return {
+                name: cardName ?? '',
+                shop: {
+                    name: getElementText(shopElement, '.model-shop-name u'),
+                    link: getShopLink(shopElement, '.model-shop-name a'),
+                },
+                price: Number(
+                    getElementText(shopElement, '.model-shop-price a').replace(
+                        /\D/g,
+                        ''
+                    )
+                ),
+            };
+        });
+    });
 
     return cards;
 };

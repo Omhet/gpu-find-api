@@ -1,34 +1,13 @@
-import { Page } from 'playwright-chromium';
 import { shopUrl } from './constants';
 import { Card, ShopPriceTuple } from './types';
 
-export const getText = (page: Page, selector: string) => {
-    return page.$eval(selector, (el) => el.textContent?.trim());
-};
+export const getCardsUrls = (cardsPath: string[]) => cardsPath.map(getCardUrl);
 
-export const getTextArray = (page: Page, selector: string) => {
-    return page.$$eval(selector, (els) =>
-        els.map((el) => el.textContent?.trim())
-    );
-};
+export const getCardUrl = (path: string) => `${shopUrl}/${path}`;
 
-export const getShopArray = (page: Page, selector: string) => {
-    return page.$$eval(selector, (els) =>
-        els.map((el) => ({
-            name: el.textContent?.trim() ?? '',
-            link:
-                (String(el.onmouseover).match(/this\.href="([^"]+)/) ??
-                    [])[1] ?? '',
-        }))
-    );
-};
-
-export const getCardsUrls = (cardsPath: string[]) =>
-    cardsPath.map((path) => `${shopUrl}/${path}`);
-
-export const getPricesStatsFromShopPrices = (cards: Card[][]) => {
-    const sortedCards = cards
-        .flatMap((card) => card)
+export const getPricesStatsFromShopPrices = (cardsArray: Card[][]) => {
+    const sortedCards = cardsArray
+        .flatMap((cards) => cards)
         .sort((a, b) => a.price - b.price);
 
     const min = sortedCards[0];
