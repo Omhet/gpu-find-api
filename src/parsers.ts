@@ -1,4 +1,4 @@
-import { chromium } from 'playwright-chromium';
+import { Browser, chromium } from 'playwright-chromium';
 import { CardsPaths } from './constants';
 import { Card, ShopPriceTuple } from './types';
 import {
@@ -24,18 +24,22 @@ export const getCardsPrices = async () => {
 };
 
 export const getCards = async (cardPaths: string[]) => {
-    const urls = getCardsUrls(cardPaths);
-    const requests = urls.map(fetchCards);
-    return await Promise.all(requests);
-};
-
-export const fetchCards = async (url: string) => {
     const browser = await chromium.launch({
         chromiumSandbox: false,
         timeout: 100000,
     });
-    const context = await browser.newContext();
-    const page = await context.newPage();
+
+    const urls = getCardsUrls(cardPaths);
+    const requests = urls.map((url) => fetchCards(url, browser));
+    const data = await Promise.all(requests);
+
+    await browser.close();
+
+    return data;
+};
+
+export const fetchCards = async (url: string, browser: Browser) => {
+    const page = await browser.newPage();
     await page.goto(url);
 
     const cardName = await getText(
@@ -68,8 +72,6 @@ export const fetchCards = async (url: string) => {
         shop,
         price,
     }));
-
-    await browser.close();
 
     return cards;
 };
