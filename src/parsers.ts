@@ -34,7 +34,8 @@ export const fetchCards = async (url: string) => {
         chromiumSandbox: false,
         timeout: 100000,
     });
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
     await page.goto(url);
 
     const cardName = await getText(
