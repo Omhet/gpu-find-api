@@ -1,18 +1,26 @@
 import { JSDOM } from 'jsdom';
-import { CardsPaths } from './constants';
+import { CardModel, CardsPaths } from './constants';
 import { getElementsArray, getElementText, getShopLink } from './parseUtils';
 import { Card } from './types';
-import { getCardUrl, getPricesStatsFromShopPrices } from './utils';
+import {
+    getCardsWithExtraStats,
+    getCardUrl,
+    getPriceStatsFromShopPrices,
+} from './utils';
 
 export const getCardsPrices = async () => {
     const data: Record<string, any> = {};
     for (const [model, path] of Object.entries(CardsPaths)) {
         const cards = await getCards(path);
-        const stats = getPricesStatsFromShopPrices(cards);
+        const cardsWithExtraStats = await getCardsWithExtraStats(
+            cards,
+            model as CardModel
+        );
+        const priceStats = getPriceStatsFromShopPrices(cardsWithExtraStats);
 
         data[model] = {
-            cards,
-            stats,
+            cards: cardsWithExtraStats,
+            priceStats,
         };
     }
 
@@ -24,12 +32,12 @@ export const getCards = async (path: string) => {
     return await fetchCards(url);
 };
 
-export const fetchCards = async (url: string) => {
+export const fetchCards = async (url: string): Promise<Card[]> => {
     const {
         window: { document },
     } = await JSDOM.fromURL(url);
     const modelElements = getElementsArray(document, '.model-short-block');
-    const cards: Card[][] = modelElements.map((modelElement) => {
+    const cards = modelElements.map((modelElement) => {
         const cardName = getElementText(modelElement, '.model-short-title');
 
         const shopElements = getElementsArray(
@@ -53,5 +61,5 @@ export const fetchCards = async (url: string) => {
         });
     });
 
-    return cards;
+    return cards.flatMap((cards) => cards);
 };
