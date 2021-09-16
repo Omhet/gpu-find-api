@@ -6,6 +6,7 @@ import {
     getCardsWithExtraStats,
     getCardUrl,
     getPriceStatsFromShopPrices,
+    wait,
 } from './utils';
 
 export const getCardsPrices = async () => {
@@ -22,6 +23,8 @@ export const getCardsPrices = async () => {
             cards: cardsWithExtraStats,
             priceStats,
         };
+
+        await wait(5000);
     }
 
     return data;

@@ -47,3 +47,6 @@ export const getCardsWithExtraStats = (
 
 const getMhPrice = (hashrate: number, price: number) =>
     Math.floor(price / hashrate);
+
+export const wait = (delay: number) =>
+    new Promise((resolve) => setTimeout(resolve, delay));
