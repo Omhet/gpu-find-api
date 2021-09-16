@@ -11,7 +11,7 @@ app.use(compression());
 
 app.use(
     cache({
-        maxAge: 3600,
+        maxAge: 30,
     }).middleware
 );
 
