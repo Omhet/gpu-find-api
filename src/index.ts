@@ -2,7 +2,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import cache from 'express-aggressive-cache';
-import { getCardsPrices } from './parsers';
+import { getCardsPrices } from './cards';
 
 const app = express();
 

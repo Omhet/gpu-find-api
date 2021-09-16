@@ -16,4 +16,9 @@ export type CardWithExtraStats = Card & {
     isAcceptablePrice: boolean;
 };
 
+export type CardWithProfitability = Card & {
+    profitability: number;
+    payBack: number;
+};
+
 export type ShopPriceTuple = [Shop, number];

@@ -1,6 +1,8 @@
 import { JSDOM } from 'jsdom';
+import config from './config';
 import { CardModel, CardsPaths } from './constants';
 import { getElementsArray, getElementText, getShopLink } from './parseUtils';
+import { getCardsWithProfitability } from './profitability';
 import { Card } from './types';
 import {
     getCardsWithExtraStats,
@@ -17,14 +19,20 @@ export const getCardsPrices = async () => {
             cards,
             model as CardModel
         );
-        const priceStats = getPriceStatsFromShopPrices(cardsWithExtraStats);
+        const cardsWithProfitability = await getCardsWithProfitability(
+            cardsWithExtraStats,
+            model as CardModel
+        );
+        const priceStats = getPriceStatsFromShopPrices(cardsWithProfitability);
 
         data[model] = {
-            cards: cardsWithExtraStats,
+            cards: cardsWithProfitability,
             priceStats,
         };
 
-        await wait(5000);
+        if (!config.IS_DEV) {
+            await wait(5000);
+        }
     }
 
     return data;
